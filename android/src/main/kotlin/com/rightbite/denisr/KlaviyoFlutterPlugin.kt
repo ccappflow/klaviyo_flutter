@@ -1,7 +1,14 @@
 package com.rightbite.denisr
 
-import android.app.Application
+import KlaviyoAndroidNotification
+import KlaviyoAndroidNotificationPriority
+import OnMessageOpenedAppStreamHandler
+import OnMessageStreamHandler
+import KlaviyoRemoteMessage
+import KlaviyoRemoteNotification
+import PigeonEventSink
 import android.content.Context
+import com.google.firebase.messaging.RemoteMessage
 import com.klaviyo.analytics.Klaviyo
 import com.klaviyo.analytics.model.Event
 import com.klaviyo.analytics.model.EventKey
@@ -52,17 +59,28 @@ class KlaviyoFlutterPlugin : MethodCallHandler, FlutterPlugin {
     private var applicationContext: Context? = null
     private lateinit var channel: MethodChannel
 
+    private var messagingService: KlaviyoMessagingService? = null
+    private val onMessageHandler = KlaviyoOnMessageHandler()
+    private val onMessageOpenedAppHandler = KlaviyoOnMessageOpenedAppHandler()
+
     override fun onAttachedToEngine(binding: FlutterPluginBinding) {
         applicationContext = binding.applicationContext
         channel = MethodChannel(binding.binaryMessenger, CHANNEL_NAME)
         channel.setMethodCallHandler(this)
+
+        OnMessageStreamHandler.register(binding.binaryMessenger, streamHandler = onMessageHandler)
+        OnMessageOpenedAppStreamHandler.register(
+            binding.binaryMessenger,
+            streamHandler = onMessageOpenedAppHandler
+        )
+
+        messagingService = KlaviyoMessagingService(::onMessage, ::onNewToken)
     }
 
     override fun onDetachedFromEngine(binding: FlutterPluginBinding) {
         applicationContext = null
         channel.setMethodCallHandler(null)
     }
-
 
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
@@ -102,12 +120,12 @@ class KlaviyoFlutterPlugin : MethodCallHandler, FlutterPlugin {
             METHOD_UPDATE_PROFILE -> {
                 try {
                     val profilePropertiesRaw = call.arguments<Map<String, Any>?>()
-                            ?: throw RuntimeException("Profile properties not exist")
+                        ?: throw RuntimeException("Profile properties not exist")
 
                     var profileProperties = convertMapToSeralizedMap(profilePropertiesRaw)
 
                     val customProperties =
-                            profileProperties[PROFILE_PROPERTIES_KEY] as Map<String, Serializable>?
+                        profileProperties[PROFILE_PROPERTIES_KEY] as Map<String, Serializable>?
 
                     if (customProperties != null) {
                         // as Android Klaviyo SDK requests properties to be on same Map level
@@ -117,15 +135,15 @@ class KlaviyoFlutterPlugin : MethodCallHandler, FlutterPlugin {
                     }
 
                     val profile = Profile(
-                            profileProperties.map { (key, value) ->
-                                ProfileKey.CUSTOM(key) to value
-                            }.toMap()
+                        profileProperties.map { (key, value) ->
+                            ProfileKey.CUSTOM(key) to value
+                        }.toMap()
                     )
 
                     Klaviyo.setProfile(profile)
                     Log.d(
-                            TAG,
-                            "Profile updated: ${Klaviyo.getExternalId()}, profileMap: $profileProperties"
+                        TAG,
+                        "Profile updated: ${Klaviyo.getExternalId()}, profileMap: $profileProperties"
                     )
 
 
@@ -148,14 +166,17 @@ class KlaviyoFlutterPlugin : MethodCallHandler, FlutterPlugin {
                     }
                     Klaviyo.createEvent(event)
 
-                    Log.d(TAG, "Event created: $event, metric: ${event.metric}, value:${event.value} eventMap: ${event.toMap()}")
+                    Log.d(
+                        TAG,
+                        "Event created: $event, metric: ${event.metric}, value:${event.value} eventMap: ${event.toMap()}"
+                    )
                     result.success("Event[$eventName] created with metadataMap: $metaData")
                 }
             }
 
             METHOD_HANDLE_PUSH -> {
                 val metaData =
-                        call.argument<HashMap<String, String>>("message") ?: emptyMap<String, String>()
+                    call.argument<HashMap<String, String>>("message") ?: emptyMap<String, String>()
 
                 if (isKlaviyoPush(metaData)) {
                     val event = Event(EventMetric.CUSTOM("\$opened_push"), metaData.mapKeys {
@@ -168,7 +189,7 @@ class KlaviyoFlutterPlugin : MethodCallHandler, FlutterPlugin {
                         result.success(true)
                     } catch (e: Exception) {
                         Log.e(
-                                TAG, "Failed handle push metaData:$metaData. Cause: $e"
+                            TAG, "Failed handle push metaData:$metaData. Cause: $e"
                         )
                         result.error("Failed handle push metaData", e.message, null)
                     }
@@ -283,6 +304,13 @@ class KlaviyoFlutterPlugin : MethodCallHandler, FlutterPlugin {
     companion object {
         private const val CHANNEL_NAME = "com.rightbite.denisr/klaviyo"
     }
+
+    private fun onNewToken(token: String){
+        Klaviyo.setPushToken(token);
+    }
+    private fun onMessage(message: RemoteMessage) {
+        onMessageHandler.onNotification(message);
+    }
 }
 
 private fun convertMapToSeralizedMap(map: Map<String, Any>): Map<String, Serializable> {
@@ -299,4 +327,79 @@ private fun convertMapToSeralizedMap(map: Map<String, Any>): Map<String, Seriali
     }
 
     return convertedMap
+
+}
+
+private class KlaviyoOnMessageHandler : OnMessageStreamHandler() {
+    private var eventSink: PigeonEventSink<KlaviyoRemoteMessage>? = null
+
+    override fun onListen(p0: Any?, sink: PigeonEventSink<KlaviyoRemoteMessage>) {
+        eventSink = sink
+    }
+
+    fun onNotification(message: RemoteMessage) {
+        eventSink?.success(
+            klaviyoRemoteMessageFromFirebaseRemoteMessage(message)
+        )
+    }
+}
+
+private class KlaviyoOnMessageOpenedAppHandler: OnMessageOpenedAppStreamHandler() {
+    private var eventSink: PigeonEventSink<KlaviyoRemoteMessage>? = null
+
+    override fun onListen(p0: Any?, sink: PigeonEventSink<KlaviyoRemoteMessage>) {
+        eventSink = sink
+    }
+
+    fun onNotification(message: RemoteMessage) {
+
+    }
+}
+
+private fun klaviyoRemoteMessageFromFirebaseRemoteMessage(message: RemoteMessage): KlaviyoRemoteMessage =
+    KlaviyoRemoteMessage(
+        senderId = message.senderId,
+        from = message.from,
+        messageId = message.messageId,
+        messageType = message.messageType,
+        data = message.data,
+        ttl = message.ttl.toLong(),
+        collapseKey = message.collapseKey,
+        notification = klaviyoRemoteNotificationFromFirebaseRemoteNotification(message.notification),
+        mutableContent = false,
+        contentAvailable = false,
+        category = null,
+        threadId = null,
+        sentTime = null,
+
+    )
+
+private fun klaviyoRemoteNotificationFromFirebaseRemoteNotification(notification: RemoteMessage.Notification?): KlaviyoRemoteNotification? {
+    if (notification == null) {
+        return null;
+    }
+
+    return KlaviyoRemoteNotification(
+        title = notification.title,
+        titleLocArgs = notification.titleLocalizationArgs?.toList() ?: emptyList(),
+        titleLocKey = notification.titleLocalizationKey,
+        body = notification.body,
+        bodyLocArgs = notification.bodyLocalizationArgs?.toList() ?: emptyList(),
+        bodyLocKey = notification.bodyLocalizationKey,
+        android = KlaviyoAndroidNotification(
+            channelId = notification.channelId,
+            clickAction = notification.clickAction,
+            color = notification.color,
+            count = notification.notificationCount?.toLong(),
+            imageUrl = notification.imageUrl?.toString(),
+            link = notification.link?.toString(),
+            smallIcon = notification.icon,
+            tag = notification.tag,
+            sound = notification.sound,
+            ticker = notification.ticker,
+            priority = notification.notificationPriority?.let { priority ->
+                KlaviyoAndroidNotificationPriority.ofRaw(priority)
+            } ?: KlaviyoAndroidNotificationPriority.DEFAULT_PRIORITY,
+        )
+    );
 }
