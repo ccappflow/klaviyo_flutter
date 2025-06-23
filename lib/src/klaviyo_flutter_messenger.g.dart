@@ -695,3 +695,14 @@ Stream<KlaviyoRemoteMessage> onMessageOpenedApp( {String instanceName = ''}) {
   });
 }
     
+Stream<String> onTokenChanged( {String instanceName = ''}) {
+  if (instanceName.isNotEmpty) {
+    instanceName = '.$instanceName';
+  }
+  final EventChannel onTokenChangedChannel =
+      EventChannel('dev.flutter.pigeon.pigeon_example_package.KlaviyoFlutterMessenger.onTokenChanged$instanceName', pigeonMethodCodec);
+  return onTokenChangedChannel.receiveBroadcastStream().map((dynamic event) {
+    return event as String;
+  });
+}
+    

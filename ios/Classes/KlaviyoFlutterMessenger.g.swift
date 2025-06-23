@@ -721,3 +721,17 @@ class OnMessageOpenedAppStreamHandler: PigeonEventChannelWrapper<KlaviyoRemoteMe
   }
 }
       
+class OnTokenChangedStreamHandler: PigeonEventChannelWrapper<String> {
+  static func register(with messenger: FlutterBinaryMessenger,
+                      instanceName: String = "",
+                      streamHandler: OnTokenChangedStreamHandler) {
+    var channelName = "dev.flutter.pigeon.pigeon_example_package.KlaviyoFlutterMessenger.onTokenChanged"
+    if !instanceName.isEmpty {
+      channelName += ".\(instanceName)"
+    }
+    let internalStreamHandler = PigeonStreamHandler<String>(wrapper: streamHandler)
+    let channel = FlutterEventChannel(name: channelName, binaryMessenger: messenger, codec: klaviyoFlutterMessengerPigeonMethodCodec)
+    channel.setStreamHandler(internalStreamHandler)
+  }
+}
+      

@@ -38,6 +38,7 @@ public class KlaviyoFlutterPlugin: NSObject, FlutterPlugin {
     private let klaviyo = KlaviyoSDK()
     private let onMessageHandler = KlaviyoOnMessageHandler()
     private let onMessageOpenedAppHandler = KlaviyoOnMessageOpenedAppHandler()
+    private let onTokenChangedHandler = KlaviyoOnTokenChangedHandler()
     
     public static func register(with registrar: FlutterPluginRegistrar) {
         let messenger = registrar.messenger()
@@ -458,13 +459,15 @@ extension KlaviyoFlutterPlugin: UNUserNotificationCenterDelegate {
         if #available(iOS 14.0, *) {
             options = [.list, .banner]
         }
-        onMessageHandler.onNotification(notification)
         completionHandler(options)
         
     }
     
     public func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         klaviyo.set(pushToken: deviceToken)
+        
+        let apnDeviceToken = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
+        onTokenChangedHandler.onTokenChanged(apnDeviceToken)
     }
     
 }
@@ -492,6 +495,18 @@ private class KlaviyoOnMessageOpenedAppHandler: OnMessageOpenedAppStreamHandler 
     func onNotificationResponse(_ notificationResponse: UNNotificationResponse) {
         let remoteMessage = KlaviyoRemoteMessage(notification: notificationResponse.notification)
         eventSink?.success(remoteMessage)
+    }
+}
+
+private class KlaviyoOnTokenChangedHandler: OnTokenChangedStreamHandler {
+    private var eventSink: PigeonEventSink<String>?
+    
+    override func onListen(withArguments arguments: Any?, sink: PigeonEventSink<String>) {
+        eventSink = sink
+    }
+    
+    func onTokenChanged(_ token: String) {
+        eventSink?.success(token)
     }
 }
 

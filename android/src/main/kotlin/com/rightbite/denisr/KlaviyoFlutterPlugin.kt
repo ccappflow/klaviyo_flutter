@@ -6,6 +6,7 @@ import OnMessageOpenedAppStreamHandler
 import OnMessageStreamHandler
 import KlaviyoRemoteMessage
 import KlaviyoRemoteNotification
+import OnTokenChangedStreamHandler
 import PigeonEventSink
 import android.content.Context
 import com.google.firebase.messaging.RemoteMessage
@@ -62,6 +63,7 @@ class KlaviyoFlutterPlugin : MethodCallHandler, FlutterPlugin {
     private var messagingService: KlaviyoMessagingService? = null
     private val onMessageHandler = KlaviyoOnMessageHandler()
     private val onMessageOpenedAppHandler = KlaviyoOnMessageOpenedAppHandler()
+    private val onTokenChangedHandler = KlaviyoOnTokenChangedHandler()
 
     override fun onAttachedToEngine(binding: FlutterPluginBinding) {
         applicationContext = binding.applicationContext
@@ -306,7 +308,7 @@ class KlaviyoFlutterPlugin : MethodCallHandler, FlutterPlugin {
     }
 
     private fun onNewToken(token: String){
-        Klaviyo.setPushToken(token);
+        onTokenChangedHandler.onTokenChanged(token);
     }
     private fun onMessage(message: RemoteMessage) {
         onMessageHandler.onNotification(message);
@@ -353,6 +355,18 @@ private class KlaviyoOnMessageOpenedAppHandler: OnMessageOpenedAppStreamHandler(
 
     fun onNotification(message: RemoteMessage) {
 
+    }
+}
+
+private class KlaviyoOnTokenChangedHandler: OnTokenChangedStreamHandler() {
+    private var eventSink: PigeonEventSink<String>? = null
+
+    override fun onListen(p0: Any?, sink: PigeonEventSink<String>) {
+        eventSink = sink
+    }
+
+    fun onTokenChanged(token: String) {
+        eventSink?.success(token)
     }
 }
 

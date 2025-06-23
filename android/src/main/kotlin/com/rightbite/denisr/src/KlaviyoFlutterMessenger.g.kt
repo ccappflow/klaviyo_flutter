@@ -3,8 +3,11 @@
 @file:Suppress("UNCHECKED_CAST", "ArrayInDataClass")
 
 
+import android.util.Log
+import io.flutter.plugin.common.BasicMessageChannel
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.EventChannel
+import io.flutter.plugin.common.MessageCodec
 import io.flutter.plugin.common.StandardMethodCodec
 import io.flutter.plugin.common.StandardMessageCodec
 import java.io.ByteArrayOutputStream
@@ -699,6 +702,19 @@ abstract class OnMessageOpenedAppStreamHandler : KlaviyoFlutterMessengerPigeonEv
         channelName += ".$instanceName"
       }
       val internalStreamHandler = KlaviyoFlutterMessengerPigeonStreamHandler<KlaviyoRemoteMessage>(streamHandler)
+      EventChannel(messenger, channelName, KlaviyoFlutterMessengerPigeonMethodCodec).setStreamHandler(internalStreamHandler)
+    }
+  }
+}
+      
+abstract class OnTokenChangedStreamHandler : KlaviyoFlutterMessengerPigeonEventChannelWrapper<String> {
+  companion object {
+    fun register(messenger: BinaryMessenger, streamHandler: OnTokenChangedStreamHandler, instanceName: String = "") {
+      var channelName: String = "dev.flutter.pigeon.pigeon_example_package.KlaviyoFlutterMessenger.onTokenChanged"
+      if (instanceName.isNotEmpty()) {
+        channelName += ".$instanceName"
+      }
+      val internalStreamHandler = KlaviyoFlutterMessengerPigeonStreamHandler<String>(streamHandler)
       EventChannel(messenger, channelName, KlaviyoFlutterMessengerPigeonMethodCodec).setStreamHandler(internalStreamHandler)
     }
   }

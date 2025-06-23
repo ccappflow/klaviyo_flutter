@@ -15,6 +15,7 @@ import 'package:pigeon/pigeon.dart';
 abstract class KlaviyoFlutterMessenger {
   KlaviyoRemoteMessage onMessage();
   KlaviyoRemoteMessage onMessageOpenedApp();
+  String onTokenChanged();
 }
 
 class KlaviyoRemoteMessage {
