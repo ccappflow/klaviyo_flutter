@@ -3,7 +3,7 @@ library klaviyo_flutter;
 import 'dart:async';
 
 import 'package:klaviyo_flutter/src/klaviyo_flutter_messenger.g.dart'
-    show KlaviyoRemoteMessage, onMessageOpenedApp, onMessage;
+    show KlaviyoRemoteMessage, onMessage, onMessageOpenedApp, onTokenChanged;
 import 'package:klaviyo_flutter/src/klaviyo_flutter_platform_interface.dart';
 import 'package:klaviyo_flutter/src/klaviyo_profile.dart';
 
@@ -174,4 +174,6 @@ class Klaviyo {
   Stream<KlaviyoRemoteMessage> onRemoteMessage() => onMessage();
 
   Stream<KlaviyoRemoteMessage> onRemoteMessageOpenedApp() => onMessageOpenedApp();
+
+  Stream<String> onToken() => onTokenChanged();
 }

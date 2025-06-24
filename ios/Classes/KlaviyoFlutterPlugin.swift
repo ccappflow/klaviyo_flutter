@@ -443,7 +443,7 @@ extension KlaviyoFlutterPlugin: UNUserNotificationCenterDelegate {
         // else pass it on to the next push notification service to which it may belong
         let handled = klaviyo.handle(notificationResponse: response, withCompletionHandler: completionHandler)
         if (handled) {
-            onMessageOpenedAppHandler.onNotificationResponse(response)
+            onMessageHandler.onNotification(response.notification)
         } else {
             completionHandler()
         }
