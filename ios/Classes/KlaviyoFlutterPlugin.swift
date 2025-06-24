@@ -38,6 +38,7 @@ public class KlaviyoFlutterPlugin: NSObject, FlutterPlugin {
     private let klaviyo = KlaviyoSDK()
     private let onMessageHandler = KlaviyoOnMessageHandler()
     private let onMessageOpenedAppHandler = KlaviyoOnMessageOpenedAppHandler()
+    
     private let onTokenChangedHandler = KlaviyoOnTokenChangedHandler()
     
     public static func register(with registrar: FlutterPluginRegistrar) {
@@ -54,6 +55,7 @@ public class KlaviyoFlutterPlugin: NSObject, FlutterPlugin {
         }
         
         registrar.addMethodCallDelegate(instance, channel: channel)
+        registrar.addApplicationDelegate(instance)
         
         OnMessageStreamHandler.register(with: messenger, streamHandler: instance.onMessageHandler)
         OnMessageOpenedAppStreamHandler.register(with: messenger, streamHandler: instance.onMessageOpenedAppHandler)
@@ -100,6 +102,7 @@ public class KlaviyoFlutterPlugin: NSObject, FlutterPlugin {
                 )
             }
             klaviyo.initialize(with: apiKey)
+            UIApplication.shared.registerForRemoteNotifications()
             result("Klaviyo initialized")
             
         case METHOD_SEND_TOKEN:
@@ -501,12 +504,17 @@ private class KlaviyoOnMessageOpenedAppHandler: OnMessageOpenedAppStreamHandler 
 
 private class KlaviyoOnTokenChangedHandler: OnTokenChangedStreamHandler {
     private var eventSink: PigeonEventSink<String>?
+    var latestToken: String?
     
     override func onListen(withArguments arguments: Any?, sink: PigeonEventSink<String>) {
         eventSink = sink
+        if let token = latestToken {
+            eventSink?.success(token)
+        }
     }
     
     func onTokenChanged(_ token: String) {
+        latestToken = token
         eventSink?.success(token)
     }
 }

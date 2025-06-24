@@ -143,11 +143,12 @@ class MethodChannelKlaviyoFlutter extends KlaviyoFlutterPlatform {
   }
 
   @override
-  Future<void> requestToken() async {
+  Future<String?> requestToken() async {
     if (Platform.isAndroid) {
-      _channel.invokeMethod('requestToken');
+      return _channel.invokeMethod('requestToken');
     } else {
       log('KlaviyoFlutterPlatform: setBadgeCount() is only supported on Android');
+      return null;
     }
   }
 }

@@ -9,6 +9,7 @@ import KlaviyoRemoteNotification
 import OnTokenChangedStreamHandler
 import PigeonEventSink
 import android.content.Context
+import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.RemoteMessage
 import com.klaviyo.analytics.Klaviyo
@@ -17,6 +18,7 @@ import com.klaviyo.analytics.model.EventKey
 import com.klaviyo.analytics.model.EventMetric
 import com.klaviyo.analytics.model.Profile
 import com.klaviyo.analytics.model.ProfileKey
+import com.klaviyo.pushFcm.KlaviyoPushService
 import io.flutter.Log
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.FlutterPlugin.FlutterPluginBinding
@@ -24,6 +26,8 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import java.io.Serializable
+import java.lang.ref.WeakReference
+
 
 private const val METHOD_UPDATE_PROFILE = "updateProfile"
 private const val METHOD_INITIALIZE = "initialize"
@@ -58,7 +62,7 @@ private const val PROFILE_PROPERTIES_KEY = "properties"
 
 private const val TAG = "KlaviyoFlutterPlugin"
 
-class KlaviyoFlutterPlugin : MethodCallHandler, FlutterPlugin {
+class KlaviyoFlutterPlugin : MethodCallHandler, FlutterPlugin, KlaviyoMessagingServiceDelegate() {
     private var applicationContext: Context? = null
     private lateinit var channel: MethodChannel
 
@@ -82,7 +86,8 @@ class KlaviyoFlutterPlugin : MethodCallHandler, FlutterPlugin {
             streamHandler = onTokenChangedHandler
         )
 
-        messagingService = KlaviyoMessagingService(::onMessage, ::onNewToken)
+        messagingService = KlaviyoMessagingService()
+        messagingService!!.delegate = WeakReference(this)
     }
 
     override fun onDetachedFromEngine(binding: FlutterPluginBinding) {
@@ -303,7 +308,15 @@ class KlaviyoFlutterPlugin : MethodCallHandler, FlutterPlugin {
             }
 
             METHOD_REQUEST_TOKEN -> {
-                FirebaseMessaging.getInstance().token
+                FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                    if (!task.isSuccessful) {
+                        result.error("Failed to request token", task.exception?.message, null)
+                    } else {
+                        val token = task.result
+                        onToken(token)
+                        result.success(token)
+                    }
+                }
             }
 
 
@@ -317,10 +330,11 @@ class KlaviyoFlutterPlugin : MethodCallHandler, FlutterPlugin {
         private const val CHANNEL_NAME = "com.rightbite.denisr/klaviyo"
     }
 
-    private fun onNewToken(token: String){
+    override fun onToken(token: String) {
         onTokenChangedHandler.onTokenChanged(token);
     }
-    private fun onMessage(message: RemoteMessage) {
+
+    override fun onMessage(message: RemoteMessage) {
         onMessageHandler.onNotification(message);
     }
 }
@@ -372,12 +386,17 @@ private class KlaviyoOnMessageOpenedAppHandler: OnMessageOpenedAppStreamHandler(
 
 private class KlaviyoOnTokenChangedHandler: OnTokenChangedStreamHandler() {
     private var eventSink: PigeonEventSink<String>? = null
+    private var latestToken: String? = null
 
     override fun onListen(p0: Any?, sink: PigeonEventSink<String>) {
         eventSink = sink
+        latestToken?.let { token ->
+            eventSink?.success(token)
+        }
     }
 
     fun onTokenChanged(token: String) {
+        latestToken = token
         eventSink?.success(token)
     }
 }
@@ -428,4 +447,23 @@ private fun klaviyoRemoteNotificationFromFirebaseRemoteNotification(notification
             } ?: KlaviyoAndroidNotificationPriority.DEFAULT_PRIORITY,
         )
     );
+}
+
+class KlaviyoMessagingService() : KlaviyoPushService() {
+    var delegate: WeakReference<KlaviyoMessagingServiceDelegate>? = null
+
+    override fun onNewToken(newToken: String) {
+        delegate?.get()?.onToken(newToken)
+        super.onNewToken(newToken)
+    }
+
+    override fun onMessageReceived(message: RemoteMessage) {
+        delegate?.get()?.onMessage(message)
+        super.onMessageReceived(message)
+    }
+}
+
+abstract class KlaviyoMessagingServiceDelegate {
+    abstract fun onToken(token: String)
+    abstract fun onMessage(message: RemoteMessage)
 }
