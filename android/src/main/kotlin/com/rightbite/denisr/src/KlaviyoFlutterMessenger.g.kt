@@ -684,7 +684,7 @@ class PigeonEventSink<T>(private val sink: EventChannel.EventSink) {
 abstract class OnMessageStreamHandler : KlaviyoFlutterMessengerPigeonEventChannelWrapper<KlaviyoRemoteMessage> {
   companion object {
     fun register(messenger: BinaryMessenger, streamHandler: OnMessageStreamHandler, instanceName: String = "") {
-      var channelName: String = "dev.flutter.pigeon.pigeon_example_package.KlaviyoFlutterMessenger.onMessage"
+      var channelName: String = "dev.flutter.pigeon.klaviyo_flutter.KlaviyoFlutterMessenger.onMessage"
       if (instanceName.isNotEmpty()) {
         channelName += ".$instanceName"
       }
@@ -697,7 +697,7 @@ abstract class OnMessageStreamHandler : KlaviyoFlutterMessengerPigeonEventChanne
 abstract class OnMessageOpenedAppStreamHandler : KlaviyoFlutterMessengerPigeonEventChannelWrapper<KlaviyoRemoteMessage> {
   companion object {
     fun register(messenger: BinaryMessenger, streamHandler: OnMessageOpenedAppStreamHandler, instanceName: String = "") {
-      var channelName: String = "dev.flutter.pigeon.pigeon_example_package.KlaviyoFlutterMessenger.onMessageOpenedApp"
+      var channelName: String = "dev.flutter.pigeon.klaviyo_flutter.KlaviyoFlutterMessenger.onMessageOpenedApp"
       if (instanceName.isNotEmpty()) {
         channelName += ".$instanceName"
       }
@@ -710,7 +710,7 @@ abstract class OnMessageOpenedAppStreamHandler : KlaviyoFlutterMessengerPigeonEv
 abstract class OnTokenChangedStreamHandler : KlaviyoFlutterMessengerPigeonEventChannelWrapper<String> {
   companion object {
     fun register(messenger: BinaryMessenger, streamHandler: OnTokenChangedStreamHandler, instanceName: String = "") {
-      var channelName: String = "dev.flutter.pigeon.pigeon_example_package.KlaviyoFlutterMessenger.onTokenChanged"
+      var channelName: String = "dev.flutter.pigeon.klaviyo_flutter.KlaviyoFlutterMessenger.onTokenChanged"
       if (instanceName.isNotEmpty()) {
         channelName += ".$instanceName"
       }

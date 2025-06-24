@@ -678,7 +678,7 @@ Stream<KlaviyoRemoteMessage> onMessage( {String instanceName = ''}) {
     instanceName = '.$instanceName';
   }
   final EventChannel onMessageChannel =
-      EventChannel('dev.flutter.pigeon.pigeon_example_package.KlaviyoFlutterMessenger.onMessage$instanceName', pigeonMethodCodec);
+      EventChannel('dev.flutter.pigeon.klaviyo_flutter.KlaviyoFlutterMessenger.onMessage$instanceName', pigeonMethodCodec);
   return onMessageChannel.receiveBroadcastStream().map((dynamic event) {
     return event as KlaviyoRemoteMessage;
   });
@@ -689,7 +689,7 @@ Stream<KlaviyoRemoteMessage> onMessageOpenedApp( {String instanceName = ''}) {
     instanceName = '.$instanceName';
   }
   final EventChannel onMessageOpenedAppChannel =
-      EventChannel('dev.flutter.pigeon.pigeon_example_package.KlaviyoFlutterMessenger.onMessageOpenedApp$instanceName', pigeonMethodCodec);
+      EventChannel('dev.flutter.pigeon.klaviyo_flutter.KlaviyoFlutterMessenger.onMessageOpenedApp$instanceName', pigeonMethodCodec);
   return onMessageOpenedAppChannel.receiveBroadcastStream().map((dynamic event) {
     return event as KlaviyoRemoteMessage;
   });
@@ -700,7 +700,7 @@ Stream<String> onTokenChanged( {String instanceName = ''}) {
     instanceName = '.$instanceName';
   }
   final EventChannel onTokenChangedChannel =
-      EventChannel('dev.flutter.pigeon.pigeon_example_package.KlaviyoFlutterMessenger.onTokenChanged$instanceName', pigeonMethodCodec);
+      EventChannel('dev.flutter.pigeon.klaviyo_flutter.KlaviyoFlutterMessenger.onTokenChanged$instanceName', pigeonMethodCodec);
   return onTokenChangedChannel.receiveBroadcastStream().map((dynamic event) {
     return event as String;
   });

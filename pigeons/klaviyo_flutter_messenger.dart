@@ -8,7 +8,7 @@ import 'package:pigeon/pigeon.dart';
     kotlinOptions: KotlinOptions(),
     swiftOut: 'ios/Classes/KlaviyoFlutterMessenger.g.swift',
     swiftOptions: SwiftOptions(),
-    dartPackageName: 'pigeon_example_package',
+    dartPackageName: 'klaviyo_flutter',
   ),
 )
 @EventChannelApi()

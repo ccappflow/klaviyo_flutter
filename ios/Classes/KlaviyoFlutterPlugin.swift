@@ -57,6 +57,7 @@ public class KlaviyoFlutterPlugin: NSObject, FlutterPlugin {
         
         OnMessageStreamHandler.register(with: messenger, streamHandler: instance.onMessageHandler)
         OnMessageOpenedAppStreamHandler.register(with: messenger, streamHandler: instance.onMessageOpenedAppHandler)
+        OnTokenChangedStreamHandler.register(with: messenger, streamHandler: instance.onTokenChangedHandler)
     }
     
     public func handle(

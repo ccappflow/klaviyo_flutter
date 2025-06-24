@@ -697,7 +697,7 @@ class OnMessageStreamHandler: PigeonEventChannelWrapper<KlaviyoRemoteMessage> {
   static func register(with messenger: FlutterBinaryMessenger,
                       instanceName: String = "",
                       streamHandler: OnMessageStreamHandler) {
-    var channelName = "dev.flutter.pigeon.pigeon_example_package.KlaviyoFlutterMessenger.onMessage"
+    var channelName = "dev.flutter.pigeon.klaviyo_flutter.KlaviyoFlutterMessenger.onMessage"
     if !instanceName.isEmpty {
       channelName += ".\(instanceName)"
     }
@@ -711,7 +711,7 @@ class OnMessageOpenedAppStreamHandler: PigeonEventChannelWrapper<KlaviyoRemoteMe
   static func register(with messenger: FlutterBinaryMessenger,
                       instanceName: String = "",
                       streamHandler: OnMessageOpenedAppStreamHandler) {
-    var channelName = "dev.flutter.pigeon.pigeon_example_package.KlaviyoFlutterMessenger.onMessageOpenedApp"
+    var channelName = "dev.flutter.pigeon.klaviyo_flutter.KlaviyoFlutterMessenger.onMessageOpenedApp"
     if !instanceName.isEmpty {
       channelName += ".\(instanceName)"
     }
@@ -725,7 +725,7 @@ class OnTokenChangedStreamHandler: PigeonEventChannelWrapper<String> {
   static func register(with messenger: FlutterBinaryMessenger,
                       instanceName: String = "",
                       streamHandler: OnTokenChangedStreamHandler) {
-    var channelName = "dev.flutter.pigeon.pigeon_example_package.KlaviyoFlutterMessenger.onTokenChanged"
+    var channelName = "dev.flutter.pigeon.klaviyo_flutter.KlaviyoFlutterMessenger.onTokenChanged"
     if !instanceName.isEmpty {
       channelName += ".\(instanceName)"
     }

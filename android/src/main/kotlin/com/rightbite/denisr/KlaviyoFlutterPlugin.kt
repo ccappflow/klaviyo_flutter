@@ -75,6 +75,10 @@ class KlaviyoFlutterPlugin : MethodCallHandler, FlutterPlugin {
             binding.binaryMessenger,
             streamHandler = onMessageOpenedAppHandler
         )
+        OnTokenChangedStreamHandler.register(
+            binding.binaryMessenger,
+            streamHandler = onTokenChangedHandler
+        )
 
         messagingService = KlaviyoMessagingService(::onMessage, ::onNewToken)
     }
@@ -354,7 +358,9 @@ private class KlaviyoOnMessageOpenedAppHandler: OnMessageOpenedAppStreamHandler(
     }
 
     fun onNotification(message: RemoteMessage) {
-
+        eventSink?.success(
+            klaviyoRemoteMessageFromFirebaseRemoteMessage(message)
+        )
     }
 }
 
