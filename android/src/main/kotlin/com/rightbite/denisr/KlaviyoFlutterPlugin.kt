@@ -9,6 +9,7 @@ import KlaviyoRemoteNotification
 import OnTokenChangedStreamHandler
 import PigeonEventSink
 import android.content.Context
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.RemoteMessage
 import com.klaviyo.analytics.Klaviyo
 import com.klaviyo.analytics.model.Event
@@ -51,6 +52,7 @@ private const val METHOD_SET_REGION = "setRegion"
 private const val METHOD_SET_ZIP = "setZip"
 private const val METHOD_SET_TIMEZONE = "setTimezone"
 private const val METHOD_SET_CUSTOM_ATTRIBUTE = "setCustomAttribute"
+private const val METHOD_REQUEST_TOKEN = "requestToken"
 
 private const val PROFILE_PROPERTIES_KEY = "properties"
 
@@ -298,6 +300,10 @@ class KlaviyoFlutterPlugin : MethodCallHandler, FlutterPlugin {
                     ?: return result.error("Bad Request", "Value must not be null", null)
                 Klaviyo.setProfileAttribute(propertyKey = ProfileKey.CUSTOM(key), value)
                 return result.success("Attribute '$key' updated")
+            }
+
+            METHOD_REQUEST_TOKEN -> {
+                FirebaseMessaging.getInstance().token
             }
 
 

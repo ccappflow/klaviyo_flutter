@@ -171,6 +171,8 @@ class Klaviyo {
   /// {@macro klaviyo_flutter_platform.setBadgeCount}
   Future<void> setBadgeCount(int count) => KlaviyoFlutterPlatform.instance.setBadgeCount(count);
 
+  Future<void> requestToken() => KlaviyoFlutterPlatform.instance.requestToken();
+
   Stream<KlaviyoRemoteMessage> onRemoteMessage() => onMessage();
 
   Stream<KlaviyoRemoteMessage> onRemoteMessageOpenedApp() => onMessageOpenedApp();

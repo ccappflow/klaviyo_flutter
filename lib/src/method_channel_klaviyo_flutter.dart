@@ -141,4 +141,13 @@ class MethodChannelKlaviyoFlutter extends KlaviyoFlutterPlatform {
       log('KlaviyoFlutterPlatform: setBadgeCount() is only supported on iOS');
     }
   }
+
+  @override
+  Future<void> requestToken() async {
+    if (Platform.isAndroid) {
+      _channel.invokeMethod('requestToken');
+    } else {
+      log('KlaviyoFlutterPlatform: setBadgeCount() is only supported on Android');
+    }
+  }
 }

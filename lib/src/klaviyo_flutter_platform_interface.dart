@@ -269,4 +269,8 @@ abstract class KlaviyoFlutterPlatform extends PlatformInterface {
   Future<void> setBadgeCount(int count) async {
     throw UnimplementedError('setBadgeCount() has not been implemented.');
   }
+
+  Future<void> requestToken() {
+    throw UnimplementedError('requestToken() has not been implemented.');
+  }
 }
