@@ -33,7 +33,7 @@ class KlaviyoEventChannelHandler {
     private val onMessageOpenedAppHandler = KlaviyoOnMessageOpenedAppHandler()
     private val onTokenChangedHandler = KlaviyoOnTokenChangedHandler()
 
-    val messages = HashMap<Int, KlaviyoRemoteMessage>()
+    val receivedNotifications = HashMap<Int, KlaviyoRemoteMessage>()
 
     fun onAttachedToEngine(messenger: BinaryMessenger) {
         OnMessageStreamHandler.register(
@@ -74,7 +74,7 @@ class KlaviyoEventChannelHandler {
         if (messageId == -1) {
             return
         }
-        val message = messages[messageId]
+        val message = receivedNotifications.remove(messageId)
         if (message != null) {
             onKlaviyoMessage(message)
         }
