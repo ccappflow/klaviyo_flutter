@@ -447,7 +447,7 @@ extension KlaviyoFlutterPlugin: UNUserNotificationCenterDelegate {
         // else pass it on to the next push notification service to which it may belong
         let handled = klaviyo.handle(notificationResponse: response, withCompletionHandler: completionHandler)
         if (handled) {
-            onMessageHandler.onNotification(response.notification)
+            onMessageOpenedAppHandler.onNotificationResponse(response)
         } else {
             completionHandler()
         }
@@ -463,6 +463,9 @@ extension KlaviyoFlutterPlugin: UNUserNotificationCenterDelegate {
         if #available(iOS 14.0, *) {
             options = [.list, .banner]
         }
+        
+        onMessageHandler.onNotification(notification)
+        
         completionHandler(options)
         
     }
@@ -478,33 +481,51 @@ extension KlaviyoFlutterPlugin: UNUserNotificationCenterDelegate {
 
 private class KlaviyoOnMessageHandler: OnMessageStreamHandler {
     private var eventSink: PigeonEventSink<KlaviyoRemoteMessage>?
+    private var latestMessage: KlaviyoRemoteMessage?
     
     override func onListen(withArguments arguments: Any?, sink: PigeonEventSink<KlaviyoRemoteMessage>) {
         eventSink = sink
+        if let message = latestMessage {
+            eventSink?.success(message)
+            latestMessage = nil
+        }
     }
-
+    
     func onNotification(_ notification: UNNotification) {
         let remoteMessage = KlaviyoRemoteMessage(notification: notification)
-        eventSink?.success(remoteMessage)
+        if let sink = eventSink {
+            sink.success(remoteMessage)
+        } else {
+            latestMessage = remoteMessage
+        }
     }
 }
 
 private class KlaviyoOnMessageOpenedAppHandler: OnMessageOpenedAppStreamHandler {
     private var eventSink: PigeonEventSink<KlaviyoRemoteMessage>?
+    private var latestMessage: KlaviyoRemoteMessage?
     
     override func onListen(withArguments arguments: Any?, sink: PigeonEventSink<KlaviyoRemoteMessage>) {
         eventSink = sink
+        if let message = latestMessage {
+            eventSink?.success(message)
+            latestMessage = nil
+        }
     }
     
     func onNotificationResponse(_ notificationResponse: UNNotificationResponse) {
         let remoteMessage = KlaviyoRemoteMessage(notification: notificationResponse.notification)
-        eventSink?.success(remoteMessage)
+        if let sink = eventSink {
+            eventSink?.success(remoteMessage)
+        } else {
+            latestMessage = remoteMessage
+        }
     }
 }
 
 private class KlaviyoOnTokenChangedHandler: OnTokenChangedStreamHandler {
     private var eventSink: PigeonEventSink<String>?
-    var latestToken: String?
+    private var latestToken: String?
     
     override func onListen(withArguments arguments: Any?, sink: PigeonEventSink<String>) {
         eventSink = sink
@@ -567,7 +588,7 @@ private extension KlaviyoRemoteMessage {
             
             self.data[key] = value;
         }
-
+        
         if let aps = userInfo["aps"] as? [String: Any] {
             if let category = aps["category"] as? String {
                 self.category = category
@@ -629,7 +650,7 @@ private extension KlaviyoRemoteNotification {
             }
         }
         
-       
+        
     }
 }
 
