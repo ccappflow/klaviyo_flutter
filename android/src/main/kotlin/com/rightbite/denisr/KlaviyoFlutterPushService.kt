@@ -131,7 +131,9 @@ class KlaviyoFlutterPushService: FirebaseMessagingService() {
         val id = generateId()
         val klaviyoMessage = klaviyoRemoteMessageFromFirebaseRemoteMessage(message)
 
-        KlaviyoEventChannelHandler.getInstance().receivedNotifications[id] = klaviyoMessage
+        val eventChannelHandler = KlaviyoEventChannelHandler.getInstance()
+        eventChannelHandler.receivedNotifications[id] = klaviyoMessage
+        eventChannelHandler.onKlaviyoMessage(klaviyoMessage)
 
         val intent = context.packageManager.getLaunchIntentForPackage(pkgName)
         val action =  intent

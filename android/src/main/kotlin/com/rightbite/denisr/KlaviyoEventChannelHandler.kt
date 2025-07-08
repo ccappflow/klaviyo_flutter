@@ -54,10 +54,6 @@ class KlaviyoEventChannelHandler {
         onTokenChangedHandler.onTokenChanged(newToken);
     }
 
-    fun onMessage(message: RemoteMessage) {
-        onMessageHandler.onMessage(message);
-    }
-
     fun onKlaviyoMessage(message: KlaviyoRemoteMessage) {
         onMessageHandler.onKlaviyoMessage(message)
     }
@@ -76,6 +72,7 @@ class KlaviyoEventChannelHandler {
         }
         val message = receivedNotifications.remove(messageId)
         if (message != null) {
+            onMessageOpenedAppHandler.onKlaviyoMessage(message)
             onKlaviyoMessage(message)
         }
     }
@@ -96,11 +93,6 @@ private class KlaviyoOnMessageHandler : OnMessageStreamHandler() {
         }
     }
 
-    fun onMessage(message: RemoteMessage) {
-        val klaviyoMessage = klaviyoRemoteMessageFromFirebaseRemoteMessage(message)
-       onKlaviyoMessage(klaviyoMessage)
-    }
-
     fun onKlaviyoMessage(klaviyoMessage: KlaviyoRemoteMessage) {
         Log.i("KLAVIYO", "onNotification sink: $eventSink")
         eventSink?.also { sink ->
@@ -117,16 +109,22 @@ private class KlaviyoOnMessageHandler : OnMessageStreamHandler() {
 
 private class KlaviyoOnMessageOpenedAppHandler: OnMessageOpenedAppStreamHandler() {
     private var eventSink: PigeonEventSink<KlaviyoRemoteMessage>? = null
+    private var latestMessage: KlaviyoRemoteMessage? = null
 
     override fun onListen(p0: Any?, sink: PigeonEventSink<KlaviyoRemoteMessage>) {
         eventSink = sink
     }
 
-    fun onNotification(message: RemoteMessage) {
-        CoroutineScope(Dispatchers.Main).launch {
-            eventSink?.success(
-                klaviyoRemoteMessageFromFirebaseRemoteMessage(message)
-            )
+    fun onKlaviyoMessage(klaviyoMessage: KlaviyoRemoteMessage) {
+        Log.i("KLAVIYO", "onNotification sink: $eventSink")
+        eventSink?.also { sink ->
+            Log.i("KLAVIYO", "onNotification send message to sink")
+            CoroutineScope(Dispatchers.Main).launch {
+                sink.success(klaviyoMessage)
+            }
+        } ?: run {
+            Log.i("KLAVIYO", "onNotification set latestMessage")
+            latestMessage = klaviyoMessage
         }
     }
 }
