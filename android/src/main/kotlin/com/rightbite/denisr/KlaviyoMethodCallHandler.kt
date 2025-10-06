@@ -10,6 +10,8 @@ import io.flutter.Log
 import com.klaviyo.analytics.Klaviyo
 import com.klaviyo.analytics.model.*
 import com.google.firebase.messaging.FirebaseMessaging
+import com.klaviyo.forms.registerForInAppForms
+import com.klaviyo.forms.unregisterFromInAppForms
 
 private const val METHOD_UPDATE_PROFILE = "updateProfile"
 private const val METHOD_INITIALIZE = "initialize"
@@ -39,6 +41,8 @@ private const val METHOD_SET_ZIP = "setZip"
 private const val METHOD_SET_TIMEZONE = "setTimezone"
 private const val METHOD_SET_CUSTOM_ATTRIBUTE = "setCustomAttribute"
 private const val METHOD_REQUEST_TOKEN = "requestToken"
+private const val METHOD_REGISTER_IN_APP_FORMS = "registerInAppForms"
+private const val METHOD_UNREGISTER_IN_APP_FORMS = "unregisterInAppForms"
 
 private const val PROFILE_PROPERTIES_KEY = "properties"
 
@@ -94,6 +98,16 @@ class KlaviyoMethodCallHandler: MethodCallHandler {
                 Klaviyo.initialize(apiKey!!, applicationContext!!)
                 Log.d(TAG, "initialized apiKey: $apiKey")
                 result.success("Klaviyo initialized")
+            }
+
+            METHOD_REGISTER_IN_APP_FORMS -> {
+                Klaviyo.registerForInAppForms()
+                result.success("Registered for Klaviyo in app forms")
+            }
+
+            METHOD_UNREGISTER_IN_APP_FORMS -> {
+                Klaviyo.unregisterFromInAppForms()
+                result.success("Unregistered from Klaviyo in app forms")
             }
 
             METHOD_SEND_TOKEN -> {

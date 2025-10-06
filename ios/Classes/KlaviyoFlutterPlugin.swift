@@ -1,9 +1,10 @@
 import Flutter
 import KlaviyoSwift
+import KlaviyoForms
 import UIKit
 
 /// A class that receives and handles calls from Flutter to complete the payment.
-public class KlaviyoFlutterPlugin: NSObject, FlutterPlugin {
+public class KlaviyoFlutterPlugin: NSObject, @preconcurrency FlutterPlugin {
     private static let methodChannelName = "com.rightbite.denisr/klaviyo"
     
     private let METHOD_UPDATE_PROFILE = "updateProfile"
@@ -34,6 +35,8 @@ public class KlaviyoFlutterPlugin: NSObject, FlutterPlugin {
     private let METHOD_SET_ZIP = "setZip"
     private let METHOD_SET_TIMEZONE = "setTimezone"
     private let METHOD_SET_CUSTOM_ATTRIBUTE = "setCustomAttribute"
+    private let METHOD_REGISTER_IN_APP_FORMS = "registerInAppForms"
+    private let METHOD_UNREGISTER_IN_APP_FORMS = "unregisterInAppForms"
     
     private let klaviyo = KlaviyoSDK()
     private let onMessageHandler = KlaviyoOnMessageHandler()
@@ -62,7 +65,7 @@ public class KlaviyoFlutterPlugin: NSObject, FlutterPlugin {
         OnTokenChangedStreamHandler.register(with: messenger, streamHandler: instance.onTokenChangedHandler)
     }
     
-    public func handle(
+    @MainActor public func handle(
         _ call: FlutterMethodCall,
         result: @escaping FlutterResult
     ) {
@@ -104,6 +107,16 @@ public class KlaviyoFlutterPlugin: NSObject, FlutterPlugin {
             klaviyo.initialize(with: apiKey)
             UIApplication.shared.registerForRemoteNotifications()
             result("Klaviyo initialized")
+            
+        case METHOD_REGISTER_IN_APP_FORMS:
+            klaviyo.registerForInAppForms()
+            print("Registered")
+            result("Registered for Klaviyo in app forms")
+            
+        case METHOD_UNREGISTER_IN_APP_FORMS:
+            klaviyo.unregisterFromInAppForms()
+            print("Unregistered")
+            result("Unregistered from Klaviyo in app forms")
             
         case METHOD_SEND_TOKEN:
             guard

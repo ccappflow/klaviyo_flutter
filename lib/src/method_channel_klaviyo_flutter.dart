@@ -151,4 +151,10 @@ class MethodChannelKlaviyoFlutter extends KlaviyoFlutterPlatform {
       return null;
     }
   }
+
+  @override
+  Future<void> registerInAppForms() => _channel.invokeMethod('registerInAppForms');
+
+  @override
+  Future<void> unregisterInAppForms() => _channel.invokeMethod('unregisterInAppForms');
 }

@@ -178,4 +178,8 @@ class Klaviyo {
   Future<String?> requestToken() => KlaviyoFlutterPlatform.instance.requestToken();
 
   Stream<String> onToken() => onTokenChanged();
+
+  Future<void> registerForInAppForms() => KlaviyoFlutterPlatform.instance.registerInAppForms();
+
+  Future<void> unregisterFromInAppForms() => KlaviyoFlutterPlatform.instance.unregisterInAppForms();
 }

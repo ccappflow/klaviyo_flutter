@@ -273,4 +273,12 @@ abstract class KlaviyoFlutterPlatform extends PlatformInterface {
   Future<String?> requestToken() {
     throw UnimplementedError('requestToken() has not been implemented.');
   }
+
+  Future<void> registerInAppForms() {
+    throw UnimplementedError('registerInAppForms() has not been implemented');
+  }
+
+  Future<void> unregisterInAppForms() {
+    throw UnimplementedError('unregisterInAppForms() has not been implemented');
+  }
 }
